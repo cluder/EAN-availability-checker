@@ -21,7 +21,7 @@ dependencies {
 
 jar {
 	manifest {
-		attributes 'Main-Class': 'pioxx.EANCheckerMain'
+		attributes 'Main-Class': 'github.cluder.ean.EANCheckerMain'
 	} 
 	from {
 		configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }

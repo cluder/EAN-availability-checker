@@ -1,9 +1,9 @@
 package github.cluder.ean;
 
+import github.cluder.ean.ui.EanCheckerUI;
+
 public class EANCheckerMain {
 	// https://www.medimops.de/produkte-C0/?fcIsSearch=1&searchparam=803341463127
-	public static String SEARCH_URL = "https://www.medimops.de/produkte-C0/?fcIsSearch=1&searchparam=";
-	public static String PLACEHOLDER = "$PARAM$";
 	public static String EAN_FILE = "eans.txt";
 
 	public static void main(String[] args) {
