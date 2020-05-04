@@ -9,7 +9,7 @@ public class ProductProviders {
 	static {
 		providers.add(new MedimopsProvider());
 		providers.add(new ReBuyProvider());
-//		providers.add(new AmazonDeProvider());
+		providers.add(new AmazonDeProvider());
 	}
 
 	static public List<AbstractProvider> getProviders() {

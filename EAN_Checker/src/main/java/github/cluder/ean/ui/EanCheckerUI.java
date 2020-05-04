@@ -55,7 +55,7 @@ public class EanCheckerUI extends JFrame {
 	public EanCheckerUI() {
 		setTitle("EAN/ISBN Checker");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		final int width = 800;
+		final int width = 1000;
 		setBounds(100, 100, width, 600);
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -139,6 +139,7 @@ public class EanCheckerUI extends JFrame {
 		tabResult.getColumnModel().getColumn(0).setPreferredWidth(120);
 		tabResult.getColumnModel().getColumn(1).setPreferredWidth(300);
 		tabResult.getColumnModel().getColumn(2).setPreferredWidth(300);
+		tabResult.getColumnModel().getColumn(3).setPreferredWidth(300);
 
 		tableRowSorter = new TableRowSorter<>(this.tableDataModel);
 		tabResult.setRowSorter(tableRowSorter);
