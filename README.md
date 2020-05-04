@@ -1,2 +1,2 @@
 # EAN-checker
-Kleines Java Tool für die Verfügbarkeitsprüfung von Produkten mittels EAN/ISBN
+Kleines Java Tool zur Verfügbarkeitsprüfung von Produkten mittels EAN/ISBN
