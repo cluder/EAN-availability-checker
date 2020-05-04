@@ -1,0 +1,29 @@
+allprojects {
+	apply plugin: 'java'
+	sourceCompatibility = '1.8'
+	targetCompatibility = '1.8'
+}
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+}
+
+dependencies {
+	//compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.2'
+	//compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.2'
+	compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.2'
+	compile 'org.jsoup:jsoup:1.13.1'
+
+    implementation 'com.google.guava:guava:28.0-jre'
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'pioxx.EANCheckerMain'
+	} 
+	from {
+		configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+}
