@@ -172,8 +172,8 @@ public class EanCheckerUI extends JFrame {
 			@Override
 			public boolean include(Entry<? extends Object, ? extends Object> entry) {
 				ResultTableModel model = (ResultTableModel) entry.getModel();
-				return model.isVisible((int) entry.getIdentifier(), checkBoxOnlyAvailable.isSelected(),
-						txtTableSearch.getText());
+				final Integer identifier = (Integer) entry.getIdentifier();
+				return model.isVisible(identifier, checkBoxOnlyAvailable.isSelected(), txtTableSearch.getText());
 			}
 		};
 
