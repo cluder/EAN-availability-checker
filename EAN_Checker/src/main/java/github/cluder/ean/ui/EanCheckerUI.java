@@ -1,6 +1,5 @@
 package github.cluder.ean.ui;
 
-import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
@@ -10,8 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -67,16 +66,12 @@ public class EanCheckerUI extends JFrame {
 		createMenubar();
 
 		// add main panel to frame
-		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new BorderLayout(10, 10));
-		getContentPane().add(mainPanel, BorderLayout.CENTER);
-
 		// -------------------------
 		// top area
-		JPanel topPanel = new JPanel();
-		topPanel.setLayout(new GridBagLayout());
+		JPanel mainPanel = new JPanel();
+		getContentPane().add(mainPanel);
+		mainPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
-		mainPanel.add(topPanel, BorderLayout.NORTH);
 
 		lblLastCheckTxt = new JLabel(lastRefreshTxt);
 		int gridY = 0;
@@ -84,16 +79,17 @@ public class EanCheckerUI extends JFrame {
 		c.gridx = gridY;
 		c.weightx = 0;
 		c.gridwidth = 2;
-		topPanel.add(lblLastCheckTxt, c);
+		c.anchor = GridBagConstraints.WEST;
+		c.insets.left = 10;
+		mainPanel.add(lblLastCheckTxt, c);
 
 		gridY++;
-		checkBoxOnlyAvailable = new JCheckBox("Nur Verfügbare anzeigen");
+		checkBoxOnlyAvailable = new JCheckBox("nicht verfügbare ausblenden");
 		c.gridy = gridY;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		c.insets.left = 10;
 		c.anchor = GridBagConstraints.WEST;
-		topPanel.add(checkBoxOnlyAvailable, c);
+		mainPanel.add(checkBoxOnlyAvailable, c);
 		checkBoxOnlyAvailable.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -104,37 +100,23 @@ public class EanCheckerUI extends JFrame {
 		gridY++;
 		c.gridy = gridY;
 		c.gridwidth = 1;
-		c.weightx = 0;
 		c.ipadx = 10;
-		JLabel lblSearch = new JLabel("Filter");
-		topPanel.add(lblSearch, c);
-
 		c.weightx = 2;
-		c.gridx = 1;
+		c.gridx = 0;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		txtTableSearch = new JTextField();
-
-		txtTableSearch.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		txtTableSearch.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				tableRowSorter.sort();
 			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
 		});
-		topPanel.add(txtTableSearch, c);
+		mainPanel.add(txtTableSearch, c);
 
 		// ---------------------------
 		// button area
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-		mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 		buttonPanel.add(Box.createHorizontalGlue());
 
 		{
@@ -173,12 +155,16 @@ public class EanCheckerUI extends JFrame {
 		// table area
 		tableDataModel = new ResultTableModel();
 		tabResult = new JTable(tableDataModel);
+		tabResult.setFont(new Font("monospaced", Font.PLAIN, 12));
 		JScrollPane tableScrollPane = new JScrollPane(tabResult);
 		tabResult.setFillsViewportHeight(true);
-		tabResult.getColumnModel().getColumn(gridY).setPreferredWidth(120);
-		tabResult.getColumnModel().getColumn(1).setPreferredWidth(300);
-		tabResult.getColumnModel().getColumn(2).setPreferredWidth(300);
-		tabResult.getColumnModel().getColumn(3).setPreferredWidth(300);
+		int eanWidth = 115;
+		tabResult.getColumnModel().getColumn(0).setPreferredWidth(eanWidth);
+		tabResult.getColumnModel().getColumn(0).setMinWidth(eanWidth);
+		tabResult.getColumnModel().getColumn(0).setMaxWidth(eanWidth);
+		tabResult.getColumnModel().getColumn(1).setPreferredWidth(280);
+		tabResult.getColumnModel().getColumn(2).setPreferredWidth(280);
+		tabResult.getColumnModel().getColumn(3).setPreferredWidth(280);
 
 		tableRowSorter = new TableRowSorter<>(this.tableDataModel);
 
@@ -195,6 +181,7 @@ public class EanCheckerUI extends JFrame {
 		tabResult.setRowSorter(tableRowSorter);
 
 		JPopupMenu tableMenu = new JPopupMenu();
+		tabResult.setComponentPopupMenu(tableMenu);
 		for (AbstractProvider p : ProductProviders.getProviders()) {
 			JMenuItem openUrlItem = new JMenuItem(p.getName() + " Link öffnen");
 			tableMenu.add(openUrlItem);
@@ -218,17 +205,23 @@ public class EanCheckerUI extends JFrame {
 			});
 		}
 
-		tabResult.setComponentPopupMenu(tableMenu);
+		gridY++;
+		c.gridx = 0;
+		c.gridy = gridY;
+		c.weightx = 3;
+		c.weighty = 3;
+		c.fill = GridBagConstraints.BOTH;
+		mainPanel.add(tableScrollPane, c);
 
-		// panel containing table search field and scroll pane
-		JPanel tablePanel = new JPanel();
-		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
+		gridY++;
+		c.gridx = 0;
+		c.gridy = gridY;
+		c.weightx = 0;
+		c.weighty = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		mainPanel.add(buttonPanel, c);
 
-		tablePanel.add(tableScrollPane);
-		mainPanel.add(tablePanel, BorderLayout.CENTER);
-		tabResult.setFont(new Font("monospaced", Font.PLAIN, 12));
-
-		// load eans from file
+		// load ean's from file
 		initTableValues();
 	}
 
@@ -238,8 +231,6 @@ public class EanCheckerUI extends JFrame {
 		{
 			JMenu mnuFile = new JMenu("Datei");
 			menuBar.add(mnuFile);
-			JMenu mnuInfo = new JMenu("Info");
-			menuBar.add(mnuInfo);
 
 			JMenuItem mntmExit = new JMenuItem("Beenden");
 			mntmExit.addActionListener(new ActionListener() {

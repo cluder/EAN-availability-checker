@@ -16,7 +16,7 @@ public class ProviderResult {
 	public Object getDisplayString() {
 		StringBuilder sb = new StringBuilder();
 		if (outOfStock.isEmpty()) {
-			final int maxProdNameLen = 25;
+			final int maxProdNameLen = 30;
 			String prodNameFixed = productName;
 			if (productName.length() > maxProdNameLen) {
 				prodNameFixed = productName.substring(0, maxProdNameLen - 2) + "..";
