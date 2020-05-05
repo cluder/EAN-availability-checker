@@ -28,11 +28,14 @@ public class MedimopsProvider extends AbstractProvider {
 		Element ele = dom.selectFirst("#body > div.grid-12.alpha.omega.mx-search-no-result > p");
 		if (ele != null) {
 			pr.outOfStock = ele.text();
+			pr.available = false;
+
 		}
 
 		final Elements outOfStockEle = dom.getElementsByClass("mx-details-basket-out-of-stock");
 		if (outOfStockEle != null && outOfStockEle.size() > 0) {
 			pr.outOfStock = outOfStockEle.text();
+			pr.available = false;
 		}
 
 		// available

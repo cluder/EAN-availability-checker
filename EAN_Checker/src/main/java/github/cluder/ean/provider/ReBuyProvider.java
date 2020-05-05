@@ -25,6 +25,7 @@ public class ReBuyProvider extends AbstractProvider {
 		final Elements notFoundElement = dom.getElementsByClass("no-results-text ng-star-inserted");
 		if (notFoundElement != null && notFoundElement.size() > 0) {
 			pr.outOfStock = notFoundElement.text();
+			pr.available = false;
 		}
 
 		Elements title = dom.getElementsByClass("title my-3");

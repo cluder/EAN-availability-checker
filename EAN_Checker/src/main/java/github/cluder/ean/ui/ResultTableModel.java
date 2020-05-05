@@ -1,6 +1,7 @@
 package github.cluder.ean.ui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -84,7 +85,30 @@ public class ResultTableModel extends AbstractTableModel {
 		return null;
 	}
 
-	public void applyFilter(String text) {
+	public boolean isVisible(int identifier, boolean checkAvailability, String filterString) {
+		String filStringLower = filterString.toLowerCase();
 
+		if (checkAvailability) {
+			Result result = tableData.get(identifier);
+			Collection<ProviderResult> values = result.providerResults.values();
+			if (values.isEmpty()) {
+				return true;
+			}
+			boolean allUnAvailable = values.stream().allMatch(p -> p.available == false);
+			if (allUnAvailable) {
+				return false;
+			}
+		}
+
+		if (!filStringLower.isEmpty()) {
+			boolean anyStringMatch = false;
+			for (int i = 0; i < getColumnCount(); i++) {
+				anyStringMatch |= ((String) getValueAt(identifier, i)).toLowerCase().contains(filStringLower);
+			}
+			return anyStringMatch;
+		}
+
+		return true;
 	}
+
 }

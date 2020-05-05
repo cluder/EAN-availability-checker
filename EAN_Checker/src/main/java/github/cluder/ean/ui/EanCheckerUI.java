@@ -3,10 +3,13 @@ package github.cluder.ean.ui;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Desktop;
-import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.util.List;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -44,11 +48,13 @@ public class EanCheckerUI extends JFrame {
 	private static Logger log = LoggerFactory.getLogger(EanCheckerUI.class);
 	private static final long serialVersionUID = 1L;
 
-	JLabel lastCheckTxt;
+	String lastRefreshTxt = "Letzte Aktualisierung: ";
+	JLabel lblLastCheckTxt;
 	JTable tabResult;
 	JTextField txtTableSearch;
 	ResultTableModel tableDataModel;
 	TableRowSorter<ResultTableModel> tableRowSorter;
+	JCheckBox checkBoxOnlyAvailable;
 
 	EANChecker checker = new EANChecker();
 
@@ -57,42 +63,74 @@ public class EanCheckerUI extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		final int width = 1000;
 		setBounds(100, 100, width, 600);
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
-		{
-			JMenu mnuFile = new JMenu("Datei");
-			menuBar.add(mnuFile);
 
-			JMenuItem mntmExit = new JMenuItem("Beenden");
-			mntmExit.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					System.exit(0);
-				}
-			});
-			mnuFile.add(mntmExit);
-		}
+		createMenubar();
 
 		// add main panel to frame
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout(10, 10));
 		getContentPane().add(mainPanel, BorderLayout.CENTER);
 
+		// -------------------------
 		// top area
 		JPanel topPanel = new JPanel();
-		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+		topPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
 		mainPanel.add(topPanel, BorderLayout.NORTH);
 
-		JPanel lastCheckPanel = new JPanel();
-		lastCheckPanel.setLayout(new FlowLayout());
-		lastCheckPanel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-		topPanel.add(lastCheckPanel);
+		lblLastCheckTxt = new JLabel(lastRefreshTxt);
+		int gridY = 0;
+		c.gridy = gridY;
+		c.gridx = gridY;
+		c.weightx = 0;
+		c.gridwidth = 2;
+		topPanel.add(lblLastCheckTxt, c);
 
-		JLabel lastCheckLabel = new JLabel("Letzte Aktualisierung:");
-		lastCheckTxt = new JLabel("-");
-		lastCheckLabel.setLabelFor(lastCheckTxt);
-		lastCheckPanel.add(lastCheckLabel);
-		lastCheckPanel.add(lastCheckTxt);
+		gridY++;
+		checkBoxOnlyAvailable = new JCheckBox("Nur Verfügbare anzeigen");
+		c.gridy = gridY;
+		c.gridx = 0;
+		c.gridwidth = 2;
+		c.insets.left = 10;
+		c.anchor = GridBagConstraints.WEST;
+		topPanel.add(checkBoxOnlyAvailable, c);
+		checkBoxOnlyAvailable.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				tableRowSorter.sort();
+			}
+		});
 
+		gridY++;
+		c.gridy = gridY;
+		c.gridwidth = 1;
+		c.weightx = 0;
+		c.ipadx = 10;
+		JLabel lblSearch = new JLabel("Filter");
+		topPanel.add(lblSearch, c);
+
+		c.weightx = 2;
+		c.gridx = 1;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		txtTableSearch = new JTextField();
+
+		txtTableSearch.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				tableRowSorter.sort();
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+		});
+		topPanel.add(txtTableSearch, c);
+
+		// ---------------------------
 		// button area
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -115,7 +153,7 @@ public class EanCheckerUI extends JFrame {
 
 					SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
-					lastCheckTxt.setText(sdf.format(new Date()));
+					lblLastCheckTxt.setText(lastRefreshTxt + sdf.format(new Date()));
 				}
 			});
 		}
@@ -131,17 +169,29 @@ public class EanCheckerUI extends JFrame {
 		}
 		buttonPanel.add(Box.createHorizontalGlue());
 
+		// -----------------------------
 		// table area
 		tableDataModel = new ResultTableModel();
 		tabResult = new JTable(tableDataModel);
 		JScrollPane tableScrollPane = new JScrollPane(tabResult);
 		tabResult.setFillsViewportHeight(true);
-		tabResult.getColumnModel().getColumn(0).setPreferredWidth(120);
+		tabResult.getColumnModel().getColumn(gridY).setPreferredWidth(120);
 		tabResult.getColumnModel().getColumn(1).setPreferredWidth(300);
 		tabResult.getColumnModel().getColumn(2).setPreferredWidth(300);
 		tabResult.getColumnModel().getColumn(3).setPreferredWidth(300);
 
 		tableRowSorter = new TableRowSorter<>(this.tableDataModel);
+
+		RowFilter<Object, Object> customRowFilter = new RowFilter<Object, Object>() {
+			@Override
+			public boolean include(Entry<? extends Object, ? extends Object> entry) {
+				ResultTableModel model = (ResultTableModel) entry.getModel();
+				return model.isVisible((int) entry.getIdentifier(), checkBoxOnlyAvailable.isSelected(),
+						txtTableSearch.getText());
+			}
+		};
+
+		tableRowSorter.setRowFilter(customRowFilter);
 		tabResult.setRowSorter(tableRowSorter);
 
 		JPopupMenu tableMenu = new JPopupMenu();
@@ -152,15 +202,16 @@ public class EanCheckerUI extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					final int selectedRow = tabResult.getSelectedRow();
-					if (selectedRow >= 0) {
-						final Result row = tableDataModel.getRow(selectedRow);
-						if (row != null && !row.ean.isEmpty()) {
-							try {
-								final Desktop desktop = Desktop.getDesktop();
-								desktop.browse(new URI(p.getSearchUrl(row.ean)));
-							} catch (IOException | URISyntaxException ex) {
-								log.error("error opening url:" + ex.getMessage(), ex);
-							}
+					if (selectedRow < 0) {
+						return;
+					}
+					final Result row = tableDataModel.getRow(selectedRow);
+					if (row != null && !row.ean.isEmpty()) {
+						try {
+							final Desktop desktop = Desktop.getDesktop();
+							desktop.browse(new URI(p.getSearchUrl(row.ean)));
+						} catch (IOException | URISyntaxException ex) {
+							log.error("error opening url:" + ex.getMessage(), ex);
 						}
 					}
 				}
@@ -169,39 +220,41 @@ public class EanCheckerUI extends JFrame {
 
 		tabResult.setComponentPopupMenu(tableMenu);
 
-		txtTableSearch = new JTextField();
-		txtTableSearch.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-				tableRowSorter.setRowFilter(RowFilter.regexFilter(txtTableSearch.getText()));
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-		});
-
 		// panel containing table search field and scroll pane
 		JPanel tablePanel = new JPanel();
-		topPanel.add(txtTableSearch);
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 
 		tablePanel.add(tableScrollPane);
 		mainPanel.add(tablePanel, BorderLayout.CENTER);
 		tabResult.setFont(new Font("monospaced", Font.PLAIN, 12));
+
+		// load eans from file
 		initTableValues();
+	}
+
+	private void createMenubar() {
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		{
+			JMenu mnuFile = new JMenu("Datei");
+			menuBar.add(mnuFile);
+			JMenu mnuInfo = new JMenu("Info");
+			menuBar.add(mnuInfo);
+
+			JMenuItem mntmExit = new JMenuItem("Beenden");
+			mntmExit.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					System.exit(0);
+				}
+			});
+			mnuFile.add(mntmExit);
+		}
 	}
 
 	private void initTableValues() {
 		final List<String> eans = checker.readEans();
 		tableDataModel.clear();
 		eans.stream().forEach(ean -> {
-			if (ean.isEmpty())
-				return;
 			tableDataModel.getTableData().add(new Result(ean));
 		});
 		tableDataModel.fireTableDataChanged();

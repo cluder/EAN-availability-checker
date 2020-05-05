@@ -5,6 +5,7 @@ public class ProviderResult {
 	public String outOfStock = "";
 	public String price = "";
 	public String productName = "";
+	public boolean available = true;
 
 	@Override
 	public String toString() {

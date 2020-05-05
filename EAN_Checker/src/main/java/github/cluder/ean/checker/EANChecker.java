@@ -29,7 +29,9 @@ public class EANChecker {
 
 	public List<String> readEans() {
 		try {
-			eans = Files.lines(Paths.get(EANCheckerMain.EAN_FILE)).collect(Collectors.toList());
+			eans = Files.lines(Paths.get(EANCheckerMain.EAN_FILE)).filter(e -> {
+				return !e.isEmpty() && !e.startsWith("#");
+			}).collect(Collectors.toList());
 			return eans;
 		} catch (Exception e) {
 			log.error("Error reading eans: " + e.getMessage(), e);
@@ -63,7 +65,6 @@ public class EANChecker {
 
 				final int responseCode = conn.getResponseCode();
 				final String contentType = conn.getContentType();
-				final String contentEncoding = conn.getContentEncoding();
 
 				log.debug("{} {} {}", responseCode, contentType);
 				switch (responseCode) {
@@ -76,6 +77,7 @@ public class EANChecker {
 					pr = new ProviderResult();
 					pr.providerName = provider.getName();
 					pr.outOfStock = "Artikel nicht gefunden (404)";
+					pr.available = false;
 					result.providerResults.put(provider.getName(), pr);
 					break;
 				default:
