@@ -1,7 +1,6 @@
 package github.cluder.ean.checker;
 
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 public class Result {
 	public String ean;
@@ -16,16 +15,10 @@ public class Result {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		return "Result [ean=" + ean + ", providerResults=" + providerResults + "]";
+	}
 
-		sb.append("ean:" + ean);
-		for (Entry<String, ProviderResult> x : providerResults.entrySet()) {
-			sb.append("    " + x.getKey()); // provider name
-			sb.append("    " + x.getValue().productName);
-			sb.append("    " + x.getValue().price);
-			sb.append("    " + x.getValue().outOfStock);
-		}
-
-		return sb.toString();
+	public void copyFrom(Result data) {
+		this.providerResults = data.providerResults;
 	}
 }

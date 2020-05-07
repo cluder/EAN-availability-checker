@@ -21,8 +21,7 @@ public class MedimopsProvider extends AbstractProvider {
 
 	@Override
 	public ProviderResult checkProduct(String ean, Document dom) {
-		ProviderResult pr = new ProviderResult();
-		pr.providerName = getName();
+		ProviderResult pr = new ProviderResult(getName());
 
 		// not found medimops
 		Element ele = dom.selectFirst("#body > div.grid-12.alpha.omega.mx-search-no-result > p");

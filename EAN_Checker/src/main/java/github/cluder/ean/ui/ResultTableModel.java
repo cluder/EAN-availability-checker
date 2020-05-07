@@ -111,4 +111,21 @@ public class ResultTableModel extends AbstractTableModel {
 		return true;
 	}
 
+	public void addTableData(List<Result> chunks) {
+		tableData.addAll(chunks);
+	}
+
+	public void updateData(Result data) {
+		for (Result r : tableData) {
+			if (r.ean.equals(data.ean)) {
+				r.copyFrom(data);
+			}
+		}
+	}
+
+	public void updateData(List<Result> chunks) {
+		for (Result r : chunks) {
+			updateData(r);
+		}
+	}
 }

@@ -1,11 +1,15 @@
 package github.cluder.ean.checker;
 
 public class ProviderResult {
-	public String providerName = "";
+	final public String providerName;
 	public String outOfStock = "";
 	public String price = "";
 	public String productName = "";
 	public boolean available = true;
+
+	public ProviderResult(String name) {
+		providerName = name;
+	}
 
 	@Override
 	public String toString() {

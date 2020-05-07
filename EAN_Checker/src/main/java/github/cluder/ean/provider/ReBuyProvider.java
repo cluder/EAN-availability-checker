@@ -19,10 +19,14 @@ public class ReBuyProvider extends AbstractProvider {
 
 	@Override
 	public ProviderResult checkProduct(String ean, Document dom) {
-		ProviderResult pr = new ProviderResult();
-		pr.providerName = getName();
+//		try {
+//			Files.write(dom.toString().getBytes(), new File(getName() + "_" + ean + "_" + ".html"));
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+		ProviderResult pr = new ProviderResult(getName());
 
-		final Elements notFoundElement = dom.getElementsByClass("no-results-text ng-star-inserted");
+		Elements notFoundElement = dom.getElementsByClass("no-results-text");
 		if (notFoundElement != null && notFoundElement.size() > 0) {
 			pr.outOfStock = notFoundElement.text();
 			pr.available = false;

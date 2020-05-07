@@ -1,10 +1,10 @@
 package github.cluder.ean.ui;
 
-import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -33,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
 
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class EanCheckerUI extends JFrame {
 	public EanCheckerUI() {
 		setTitle("EAN/ISBN Checker");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		final int width = 1000;
+		final int width = 800;
 		setBounds(100, 100, width, 600);
 
 		createMenubar();
@@ -75,6 +76,7 @@ public class EanCheckerUI extends JFrame {
 
 		lblLastCheckTxt = new JLabel(lastRefreshTxt);
 		int gridY = 0;
+		c = new GridBagConstraints();
 		c.gridy = gridY;
 		c.gridx = gridY;
 		c.weightx = 0;
@@ -85,9 +87,11 @@ public class EanCheckerUI extends JFrame {
 
 		gridY++;
 		checkBoxOnlyAvailable = new JCheckBox("nicht verfügbare ausblenden");
+		c = new GridBagConstraints();
 		c.gridy = gridY;
 		c.gridx = 0;
 		c.gridwidth = 2;
+		c.insets.left = 10;
 		c.anchor = GridBagConstraints.WEST;
 		mainPanel.add(checkBoxOnlyAvailable, c);
 		checkBoxOnlyAvailable.addItemListener(new ItemListener() {
@@ -98,12 +102,14 @@ public class EanCheckerUI extends JFrame {
 		});
 
 		gridY++;
+		c = new GridBagConstraints();
 		c.gridy = gridY;
 		c.gridwidth = 1;
 		c.ipadx = 10;
 		c.weightx = 2;
 		c.gridx = 0;
 		c.fill = GridBagConstraints.HORIZONTAL;
+		c.insets.left = 10;
 		txtTableSearch = new JTextField();
 		txtTableSearch.addKeyListener(new KeyAdapter() {
 			@Override
@@ -119,36 +125,44 @@ public class EanCheckerUI extends JFrame {
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 		buttonPanel.add(Box.createHorizontalGlue());
 
-		{
-			JButton btn = new JButton("Verfügbarkeit prüfen");
-			buttonPanel.add(btn);
+		JButton btn = new JButton("Verfügbarkeit prüfen");
+		buttonPanel.add(btn);
 
-			btn.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					checker.readEans();
-					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-					final List<Result> checkResults = checker.checkAllEans();
-					setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-					tableDataModel.setTableData(checkResults);
-					tableDataModel.fireTableDataChanged();
+		btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				initTableValues();
 
-					SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+				final Runnable checkAllEanRunnable = new Runnable() {
+					@Override
+					public void run() {
+						for (String ean : checker.getEans()) {
+							final Result checkEANResult = checker.checkEAN(ean);
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									tableDataModel.updateData(checkEANResult);
+									tableDataModel.fireTableDataChanged();
+								}
+							});
+						}
+					}
+				};
+				new Thread(checkAllEanRunnable).start();
 
-					lblLastCheckTxt.setText(lastRefreshTxt + sdf.format(new Date()));
-				}
-			});
-		}
-		{
-			JButton btn = new JButton("EANs aus Datei laden");
-			buttonPanel.add(btn);
-			btn.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					initTableValues();
-				}
-			});
-		}
+				SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+				lblLastCheckTxt.setText(lastRefreshTxt + sdf.format(new Date()));
+			}
+		});
+
+		btn = new JButton("EANs aus Datei laden");
+		buttonPanel.add(btn);
+		btn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				initTableValues();
+			}
+		});
 		buttonPanel.add(Box.createHorizontalGlue());
 
 		// -----------------------------
@@ -162,9 +176,10 @@ public class EanCheckerUI extends JFrame {
 		tabResult.getColumnModel().getColumn(0).setPreferredWidth(eanWidth);
 		tabResult.getColumnModel().getColumn(0).setMinWidth(eanWidth);
 		tabResult.getColumnModel().getColumn(0).setMaxWidth(eanWidth);
-		tabResult.getColumnModel().getColumn(1).setPreferredWidth(280);
-		tabResult.getColumnModel().getColumn(2).setPreferredWidth(280);
-		tabResult.getColumnModel().getColumn(3).setPreferredWidth(280);
+		int providerColumnWidth = 280;
+		for (int iProv = 1; iProv <= ProductProviders.getProviders().size(); iProv++) {
+			tabResult.getColumnModel().getColumn(iProv).setPreferredWidth(providerColumnWidth);
+		}
 
 		tableRowSorter = new TableRowSorter<>(this.tableDataModel);
 
@@ -206,18 +221,23 @@ public class EanCheckerUI extends JFrame {
 		}
 
 		gridY++;
+		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = gridY;
 		c.weightx = 3;
 		c.weighty = 3;
+		c.insets.left = 10;
 		c.fill = GridBagConstraints.BOTH;
 		mainPanel.add(tableScrollPane, c);
 
 		gridY++;
+		c = new GridBagConstraints();
+		c.insets = new Insets(5, 5, 5, 5);
 		c.gridx = 0;
 		c.gridy = gridY;
 		c.weightx = 0;
 		c.weighty = 0;
+		c.insets.left = 10;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		mainPanel.add(buttonPanel, c);
 
