@@ -20,6 +20,9 @@ dependencies {
 }
 
 jar {
+	baseName +='_'+ new java.text.SimpleDateFormat("dd_MM_yyyy").format(new java.util.Date())
+	println(baseName)
+	
 	manifest {
 		attributes 'Main-Class': 'github.cluder.ean.EANCheckerMain'
 	} 

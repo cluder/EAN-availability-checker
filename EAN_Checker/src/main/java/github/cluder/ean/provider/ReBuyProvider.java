@@ -20,9 +20,9 @@ public class ReBuyProvider extends AbstractProvider {
 	@Override
 	public ProviderResult checkProduct(String ean, Document dom) {
 //		try {
-//			Files.write(dom.toString().getBytes(), new File(getName() + "_" + ean + "_" + ".html"));
+//			Files.write(Paths.get(getName() + "_" + ean + "_" + ".html"), dom.toString().getBytes());
 //		} catch (IOException e) {
-//			e.printStackTrace();
+//
 //		}
 		ProviderResult pr = new ProviderResult(getName());
 
@@ -38,7 +38,7 @@ public class ReBuyProvider extends AbstractProvider {
 		}
 
 		// Preis
-		Elements price = dom.getElementsByClass("font-weight-bold mr-3 price-font-size ng-star-inserted");
+		Elements price = dom.getElementsByClass("font-weight-bold mr-3 price-font-size");
 		if (price != null && price.size() > 0) {
 			pr.price = price.text();
 		}
