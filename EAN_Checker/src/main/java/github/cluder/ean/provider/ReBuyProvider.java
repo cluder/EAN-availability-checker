@@ -32,6 +32,12 @@ public class ReBuyProvider extends AbstractProvider {
 			pr.available = false;
 		}
 
+		Elements notAvailable = dom.getElementsByClass("stock-count unavailable");
+		if (notAvailable != null && notAvailable.size() > 0) {
+			pr.outOfStock = notAvailable.text();
+			pr.available = false;
+		}
+
 		Elements title = dom.getElementsByClass("title my-3");
 		if (title != null && title.size() > 0) {
 			pr.productName = title.text();
